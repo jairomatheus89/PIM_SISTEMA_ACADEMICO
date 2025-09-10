@@ -2,7 +2,7 @@ import sqlite3
 
 class DataBaseService:
     def __init__(self):
-        self.db = sqlite3.connect("database.db")
+        self.db = sqlite3.connect("./database.db")
         self.create_db()
 
     def create_db(self):
