@@ -1,12 +1,9 @@
 from tkinter import *
+from tkinter import messagebox
 from backend.api import autenticar_usuario_api
-from frontend.Main_screen import MainScreen
-from frontend.Aluno_screen import AlunoScreen
 
-from tkinter import *
-from backend.api import autenticar_usuario_api
 from frontend.Main_screen import MainScreen
-from frontend.Aluno_screen import AlunoScreen  # importa a tela de aluno
+from frontend.Aluno_screen import AlunoScreen  
 
 class TelaLogin:
     def __init__(self, master=None):
@@ -39,12 +36,8 @@ class TelaLogin:
         self.voltar_professor = Button(self.frame_login_professor, text="Voltar", width=30, command=self.voltar_escolha)
         self.voltar_professor.grid(row=4, column=0, columnspan=2, pady=5, ipady=5)
 
-        self.message_label = Label(self.frame_login_professor, text="", fg="red")
-        self.message_label.grid(row=5, column=0, columnspan=2)
-
         # Tela do aluno (vai ser criada só quando precisar)
         self.aluno_screen = None
-
 
     # Mostra Frame login professor
     def entrar_professor(self):
@@ -73,22 +66,27 @@ class TelaLogin:
         self.frame_escolha.pack(expand=True)
 
     # Login do professor
+
+    from tkinter import messagebox
+
     def login_professor(self):
         self.master.title("Login Professor")
-        self.message_label.config(text="", fg="red")
 
         login = self.user_entry.get().strip()
         senha = self.password_entry.get()
 
         if not login or not senha:
-            self.message_label.config(text="Preencha todos os campos")
+            messagebox.showwarning("Atenção", "Preencha todos os campos")
             return
 
         if " " in login:
-            self.message_label.config(text="Usuário não pode conter espaços")
+            messagebox.showwarning("Atenção", "Usuário não pode conter espaços")
             return
 
+        #puxando api
         resultado = autenticar_usuario_api(login, senha)
+
+
 
         if resultado.get("sucesso"):
             self.frame_login_professor.pack_forget()
@@ -99,7 +97,9 @@ class TelaLogin:
             }
             MainScreen(self.master, usuario)
         else:
-            self.message_label.config(text=resultado.get("mensagem", "Erro no login"), fg="red")
+            messagebox.showerror("Erro no Login", resultado.get("mensagem", "Erro ao tentar logar"))
+
+
 
 
 if __name__ == "__main__":

@@ -1,95 +1,80 @@
+from tkinter import *
+from tkinter import ttk
 
-from tkinter import * 
 from backend.api import *
+from frontend.funcoes_main.atividades import mostrar_atividades
+from frontend.funcoes_main.listar_turmas import *
 
 class MainScreen:
     def __init__(self, master, professor):
         self.master = master
-        self.professor = professor  # dicionário com id, nome , materia
-        
+        self.professor = professor
+        self.turmas = []
+
         master.title(f"PROFESSOR - {professor['nome']}")
-        master.geometry("700x600")  
+        master.geometry("800x800")
 
         # Label de boas-vindas
         self.welcome_label = Label(master, text=f"Bem-vindo, {professor['nome']}", font=("Calibri", 14, "bold"))
         self.welcome_label.pack(pady=10)
 
-        # Exemplo: mostrar ID do professor
-        self.id_label = Label(master, text=f"Materia do Professor: {professor['materia']}", font=("Calibri", 12))
+        # Matéria do professor
+        self.id_label = Label(master, text=f"Matéria do Professor: {professor['materia']}", font=("Calibri", 12))
         self.id_label.pack(pady=5)
 
-        # Botão para listar turmas
-        self.listar_turmas_btn = Button(master, text="Listar minhas turmas", command=self.mostrar_turmas)
-        self.listar_turmas_btn.pack(pady=20)
+        # Frame para os botões do menu
+        self.menu_frame = Frame(master)
+        self.menu_frame.pack(pady=10)
+
+        self.btn_turmas = Button(self.menu_frame, text="Minhas Turmas", command=lambda: self.mostrar_frame("turmas"))
+        self.btn_turmas.grid(row=0, column=0, padx=5)
+
+        self.btn_outra1 = Button(self.menu_frame, text="Atividades", command=lambda: self.mostrar_frame("atividades"))
+        self.btn_outra1.grid(row=0, column=1, padx=5)
+
+        self.btn_outra2 = Button(self.menu_frame, text="Adicionar Notas", command=lambda: self.mostrar_frame("notas"))
+        self.btn_outra2.grid(row=0, column=2, padx=5)
+
+        self.btn_outra3 = Button(self.menu_frame, text="Pjota gay", command=lambda: self.mostrar_frame("outra3"))
+        self.btn_outra3.grid(row=0, column=3, padx=5)
+
+        # Frames de conteúdo
+        self.frames = {}
+
+        # Frame Turmas
+        self.frames["turmas"] = Frame(master)
+        criar_frame_turmas(self, self.frames["turmas"])
+
+        # Frame Atividades
+        self.frames["atividades"] = Frame(master)
+        Label(self.frames["atividades"], text="Gerenciar Atividades").pack()
+
+        # Outras funcionalidades
+        self.frames["notas"] = Frame(master)
+        Label(self.frames["notas"], text="Gerenciar Notas").pack()
+
+        self.frames["outra3"] = Frame(master)
+        Label(self.frames["outra3"], text="pjota gay sim senhor").pack()
+
+        # Inicialmente não mostra nenhum frame
+        for f in self.frames.values():
+            f.pack_forget()
 
 
-        ####
-        # Frame para turmas com scrollbar
-        frame_turmas = Frame(master)
-        frame_turmas.pack(fill=BOTH, expand=False, padx=20, pady=5)
+    def mostrar_frame(self, chave):
+        for f in self.frames.values():
+            f.pack_forget()
 
-        self.scrollbar_turmas = Scrollbar(frame_turmas)
-        self.scrollbar_turmas.pack(side=RIGHT, fill=Y)
+        self.frames[chave].pack(fill=BOTH, expand=True)
 
-        self.listbox_turmas = Listbox(frame_turmas, yscrollcommand=self.scrollbar_turmas.set, height=8)
-        self.listbox_turmas.pack(side=LEFT, fill=BOTH, expand=True)
-        self.listbox_turmas.bind("<<ListboxSelect>>", self.turma_selecionada)
-
-        self.scrollbar_turmas.config(command=self.listbox_turmas.yview)
-
-        # Frame para alunos com scrollbar
-        frame_alunos = Frame(master)
-        frame_alunos.pack(fill=BOTH, expand=False, padx=20, pady=5)
-
-        self.scrollbar_alunos = Scrollbar(frame_alunos)
-        self.scrollbar_alunos.pack(side=RIGHT, fill=Y)
-
-        self.listbox_alunos = Listbox(frame_alunos, yscrollcommand=self.scrollbar_alunos.set, height=10)
-        self.listbox_alunos.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.scrollbar_alunos.config(command=self.listbox_alunos.yview)
-        
+        if chave == "turmas":
+            mostrar_turmas(self)
+        elif chave == "atividades":
+            mostrar_atividades(self) 
+    
 
 
-    def listar_turmas(self):
-        resultado = listar_turmas_api(self.professor["id"])
-        
-        # Limpa o frame antes de mostrar as turmas
-        for widget in self.frame_turmas.winfo_children():
-            widget.destroy()
 
-        if resultado["sucesso"]:
-            for turma in resultado["turmas"]:
-                Label(self.frame_turmas, text=turma["nome_turma"]).pack()
-        else:
-            Label(self.frame_turmas, text="Não foi possível carregar as turmas", fg="red").pack()
-
-    def mostrar_turmas(self):
-        resultado = listar_turmas_api(self.professor["id"])
-        self.listbox_turmas.delete(0, END)
-        self.listbox_alunos.delete(0, END)
-
-        if resultado["sucesso"]:
-            self.turmas = resultado["turmas"]
-            for turma in self.turmas:
-                self.listbox_turmas.insert(END, turma["nome_turma"])
-        else:
-            self.listbox_turmas.insert(END, "Não foi possível carregar as turmas")
-
-    def turma_selecionada(self, event):
-        if not self.listbox_turmas.curselection():
-            return
-        index = self.listbox_turmas.curselection()[0]
-        turma_selecionada = self.turmas[index]
-
-        resultado = listar_alunos_api(turma_selecionada["id_turma"])
-        self.listbox_alunos.delete(0, END)
-
-        if resultado["sucesso"]:
-            for aluno in resultado["alunos"]:
-                self.listbox_alunos.insert(END, f"{aluno['nome']} (RA: {aluno['ra']})")
-        else:
-            self.listbox_alunos.insert(END, "Não foi possível carregar os alunos")
 
 if __name__ == "__main__":
     root = Tk()

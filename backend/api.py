@@ -56,3 +56,4 @@ def listar_atividades_aluno_api(ra):
         return resposta.json()
     except requests.exceptions.RequestException as e:
         return {"sucesso": False, "mensagem": f"Erro ao conectar na API: {str(e)}"}
+

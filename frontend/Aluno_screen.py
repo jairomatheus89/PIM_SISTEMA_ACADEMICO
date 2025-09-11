@@ -9,8 +9,6 @@ class AlunoScreen(Frame):
         self.voltar_callback = voltar_callback
         self.pack(expand=True, fill="both")
 
-
-
         Label(self, text="Consultar Aluno", font=("Calibri", 20, "bold")).pack(pady=20)
 
         # Campo RA
@@ -22,6 +20,7 @@ class AlunoScreen(Frame):
         # Botão Buscar
         self.buscar_btn = Button(self, text="Buscar Atividades", command=self.buscar_atividades)
         self.buscar_btn.pack(pady=10)
+        
         # Botão voltar
         self.voltar_btn = Button(self, text="Voltar", command=self.voltar_callback)
         self.voltar_btn.pack(pady=10)
@@ -44,8 +43,7 @@ class AlunoScreen(Frame):
         self.tree.pack(expand=True, fill="both", pady=20)
 
         
-        
-
+    
     def buscar_atividades(self):
         ra = self.ra_entry.get().strip()
         if not ra:
