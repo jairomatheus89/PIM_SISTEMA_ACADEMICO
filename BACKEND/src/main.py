@@ -107,3 +107,168 @@ def listar_atividades_aluno(ra: str = Query(..., description="RA do aluno")):
     banco.close()
 
     return {"sucesso": True, "atividades": atividades}
+
+@app.get("/atividades_professor")
+def listar_atividades_professor(id_professor: int = Query(..., description="ID do professor")):
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    # Pega todas as atividades do professor
+    cursor.execute("""
+        SELECT A.id_atividade, A.nome_atividade, A.descricao, A.data_entrega
+        FROM Atividades A
+        WHERE A.id_professor = ?
+    """, (id_professor,))
+    atividades = cursor.fetchall()
+
+    resultado = []
+    for a in atividades:
+        # Pega as turmas vinculadas a cada atividade
+        cursor.execute("""
+            SELECT T.id_turma, T.nome_turma
+            FROM Turma T
+            LEFT JOIN Turma_Atividade TA ON T.id_turma = TA.id_turma
+            WHERE TA.id_atividade = ?
+        """, (a["id_atividade"],))
+        turmas = [dict(t) for t in cursor.fetchall()]
+
+        resultado.append({
+            "id_atividade": a["id_atividade"],
+            "nome_atividade": a["nome_atividade"],
+            "descricao": a["descricao"],
+            "data_entrega": a["data_entrega"],
+            "turmas": turmas
+        })
+
+    banco.close()
+    return {"sucesso": True, "atividades": resultado}
+
+
+@app.post("/criar_atividades")
+async def criar_atividade(request: Request):
+    """
+    Recebe dados de uma nova atividade do frontend e salva no banco.
+    Espera um JSON com:
+    {
+        "nome_atividade": "...",
+        "descricao": "...",
+        "data_entrega": "yyyy-mm-dd",
+        "professor_id": 1,
+        "turmas": [1, 2]   # IDs das turmas vinculadas
+    }
+    """
+    dados = await request.json()
+    nome_atividade = dados.get("nome_atividade")
+    descricao = dados.get("descricao")
+    data_entrega = dados.get("data_entrega")
+    professor_id = dados.get("professor_id")
+    turmas = dados.get("turmas", [])
+
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    try:
+        # Inserir atividade
+        cursor.execute(
+            "INSERT INTO Atividades (id_professor, nome_atividade, descricao, data_entrega) VALUES (?, ?, ?, ?)",
+            (professor_id, nome_atividade, descricao, data_entrega)
+        )
+        id_atividade = cursor.lastrowid
+
+        # Vincular atividade às turmas
+        for turma_id in turmas:
+            cursor.execute(
+                "INSERT INTO Turma_Atividade (id_turma, id_atividade) VALUES (?, ?)",
+                (turma_id, id_atividade)
+            )
+
+        banco.commit()
+        banco.close()
+        return {"sucesso": True, "id_atividade": id_atividade}
+
+    except Exception as e:
+        banco.rollback()
+        banco.close()
+        return {"sucesso": False, "mensagem": str(e)}
+
+@app.put("/editar_atividade")
+async def editar_atividade(request: Request):
+    """
+    {
+        "id_atividade": 1,
+        "nome_atividade": "...",
+        "descricao": "...",
+        "data_entrega": "yyyy-mm-dd",
+        "professor_id": 1
+    }
+    """
+    dados = await request.json()
+    id_atividade = dados.get("id_atividade")
+    nome_atividade = dados.get("nome_atividade")
+    descricao = dados.get("descricao")
+    data_entrega = dados.get("data_entrega")
+    professor_id = dados.get("professor_id")
+
+    if not id_atividade:
+        return {"sucesso": False, "mensagem": "ID da atividade não fornecido"}
+
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    try:
+        # Atualizar apenas dados da atividade (sem alterar turmas)
+        cursor.execute(
+            """
+            UPDATE Atividades
+            SET nome_atividade = ?, descricao = ?, data_entrega = ?, id_professor = ?
+            WHERE id_atividade = ?
+            """,
+            (nome_atividade, descricao, data_entrega, professor_id, id_atividade)
+        )
+
+        banco.commit()
+        banco.close()
+        return {"sucesso": True}
+
+    except Exception as e:
+        banco.rollback()
+        banco.close()
+        return {"sucesso": False, "mensagem": str(e)}
+
+@app.delete("/excluir_atividade")
+async def excluir_atividade(request: Request):
+    """
+    Exclui uma atividade do banco de dados.
+    Espera um JSON com:
+    {
+        "id_atividade": 1,
+        "professor_id": 1
+    }
+    """
+    dados = await request.json()
+    id_atividade = dados.get("id_atividade")
+
+    if not id_atividade:
+        return {"sucesso": False, "mensagem": "ID da atividade não fornecido"}
+
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    try:
+        # 1. Excluir notas vinculadas à atividade
+        cursor.execute("DELETE FROM Notas WHERE id_atividade = ?", (id_atividade,))
+        
+        # 2. Excluir vínculo da atividade com turmas
+        cursor.execute("DELETE FROM Turma_Atividade WHERE id_atividade = ?", (id_atividade,))
+        
+        # 3. Excluir a própria atividade
+        cursor.execute("DELETE FROM Atividades WHERE id_atividade = ?", (id_atividade,))
+
+        banco.commit()
+        banco.close()
+        return {"sucesso": True}
+
+    except Exception as e:
+        banco.rollback()
+        banco.close()
+        return {"sucesso": False, "mensagem": str(e)}
