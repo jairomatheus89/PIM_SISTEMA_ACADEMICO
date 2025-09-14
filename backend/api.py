@@ -119,3 +119,23 @@ def excluir_atividade_api(payload):
         return resposta.json()
     except requests.exceptions.RequestException as e:
         return {"sucesso": False, "mensagem": f"Erro ao conectar na API: {str(e)}"}
+
+def salvar_nota_api(payload):
+    """
+    Chama a API para salvar ou atualizar a nota e o status de entrega de um aluno.
+
+    payload deve conter:
+    - id_aluno (obrigatório)
+    - id_atividade (obrigatório)
+    - nota (obrigatório)
+    - entregue (opcional, True ou False)
+    - professor_id (opcional)
+    """
+    url = f"{SERVIDOR}/salvar_nota"
+
+    try:
+        resposta = requests.post(url, json=payload)
+        resposta.raise_for_status()  # dispara erro se status >= 400
+        return resposta.json()       # ex: {'sucesso': True} ou {'sucesso': False, 'mensagem': ...}
+    except requests.exceptions.RequestException:
+        return {"sucesso": False, "mensagem": "Erro ao conectar no servidor"}

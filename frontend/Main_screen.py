@@ -71,6 +71,8 @@ class MainScreen:
             mostrar_turmas(self)
         elif chave == "atividades":
             mostrar_atividades(self) 
+        elif chave == "notas":
+            mostrar_notas(self)
     
 
 

@@ -272,3 +272,47 @@ async def excluir_atividade(request: Request):
         banco.rollback()
         banco.close()
         return {"sucesso": False, "mensagem": str(e)}
+
+@app.post("/salvar_nota")
+async def salvar_nota(request: Request):
+    """
+    Recebe dados do frontend para salvar a nota e o status de entrega de um aluno.
+    Espera um JSON com:
+    {
+        "id_aluno": 1,
+        "id_atividade": 1,
+        "nota": 8.5,
+        "entregue": True  # opcional, padrão é False
+    }
+    """
+    dados = await request.json()
+    id_aluno = dados.get("id_aluno")
+    id_atividade = dados.get("id_atividade")
+    nota = dados.get("nota")
+    entregue = dados.get("entregue", False)  # se não informado, assume False
+
+    if id_aluno is None or id_atividade is None or nota is None:
+        return {"sucesso": False, "mensagem": "Campos obrigatórios não fornecidos"}
+
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    try:
+        # Insere a nota ou atualiza se já existir, incluindo o status de entrega
+        cursor.execute("""
+            INSERT INTO Notas (id_aluno, id_atividade, nota, entregue)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(id_aluno, id_atividade)
+            DO UPDATE SET 
+                nota=excluded.nota,
+                entregue=excluded.entregue
+        """, (id_aluno, id_atividade, nota, int(entregue)))  # sqlite usa 0/1 para booleanos
+
+        banco.commit()
+        banco.close()
+        return {"sucesso": True}
+
+    except Exception as e:
+        banco.rollback()
+        banco.close()
+        return {"sucesso": False, "mensagem": str(e)}
