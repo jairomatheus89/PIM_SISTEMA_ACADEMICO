@@ -2,8 +2,10 @@ from tkinter import *
 from tkinter import ttk
 
 from backend.api import *
-from frontend.funcoes_main.atividades import mostrar_atividades
+from frontend.funcoes_main.atividades import *
 from frontend.funcoes_main.listar_turmas import *
+from frontend.funcoes_main.notas import *
+from frontend.funcoes_main.relatorios import*
 
 class MainScreen:
     def __init__(self, master, professor):
@@ -35,7 +37,7 @@ class MainScreen:
         self.btn_outra2 = Button(self.menu_frame, text="Adicionar Notas", command=lambda: self.mostrar_frame("notas"))
         self.btn_outra2.grid(row=0, column=2, padx=5)
 
-        self.btn_outra3 = Button(self.menu_frame, text="Pjota gay", command=lambda: self.mostrar_frame("outra3"))
+        self.btn_outra3 = Button(self.menu_frame, text="Relatórios", command=lambda: self.mostrar_frame("relatorios"))
         self.btn_outra3.grid(row=0, column=3, padx=5)
 
         # Frames de conteúdo
@@ -53,8 +55,8 @@ class MainScreen:
         self.frames["notas"] = Frame(master)
         Label(self.frames["notas"], text="Gerenciar Notas").pack()
 
-        self.frames["outra3"] = Frame(master)
-        Label(self.frames["outra3"], text="pjota gay sim senhor").pack()
+        self.frames["relatorios"] = Frame(master)
+        Label(self.frames["relatorios"], text="Gerenciar Relatórios").pack()
 
         # Inicialmente não mostra nenhum frame
         for f in self.frames.values():
@@ -71,8 +73,11 @@ class MainScreen:
             mostrar_turmas(self)
         elif chave == "atividades":
             mostrar_atividades(self) 
-        elif chave == "notas":
+        elif chave =="notas":
             mostrar_notas(self)
+        elif chave =="relatorios":
+            mostrar_relatorios(self)
+            
     
 
 

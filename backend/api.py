@@ -79,11 +79,12 @@ def criar_atividade_api(payload):
     url = f"{SERVIDOR}/criar_atividades"
 
     try:
-        resposta = requests.post(url, json=payload)
-        resposta.raise_for_status()  # dispara erro se status != 200
-        return resposta.json()  # deve retornar {'sucesso': True, ...} ou {'sucesso': False, 'mensagem': ...}
-    except requests.exceptions.RequestException as e:
-        return {"sucesso": False, "mensagem": f"Erro ao conectar na API: {str(e)}"}
+        resposta = requests.post(url, json=payload, timeout=5)  # adiciona timeout para evitar travamento
+        resposta.raise_for_status()
+        return resposta.json()  # retorna o JSON do backend
+    except requests.exceptions.RequestException:
+        return {"sucesso": False, "mensagem": "Erro ao conectar no servidor!"}
+
     
 def editar_atividade_api(payload):
     """
@@ -123,7 +124,7 @@ def excluir_atividade_api(payload):
 def salvar_nota_api(payload):
     """
     Chama a API para salvar ou atualizar a nota e o status de entrega de um aluno.
-
+    
     payload deve conter:
     - id_aluno (obrigatório)
     - id_atividade (obrigatório)
@@ -134,8 +135,27 @@ def salvar_nota_api(payload):
     url = f"{SERVIDOR}/salvar_nota"
 
     try:
-        resposta = requests.post(url, json=payload)
+        resposta = requests.post(url, json=payload)  # POST para criar ou atualizar
         resposta.raise_for_status()  # dispara erro se status >= 400
-        return resposta.json()       # ex: {'sucesso': True} ou {'sucesso': False, 'mensagem': ...}
+        return resposta.json()       # retorna {'sucesso': True} ou {'sucesso': False, 'mensagem': ...}
+    except requests.exceptions.RequestException as e:
+        # Inclui a mensagem de erro técnico para depuração sem quebrar o fluxo
+        return {"sucesso": False, "mensagem": f"Erro ao conectar no servidor"}
+
+
+def buscar_nota_api(id_aluno, id_atividade):
+    """
+    Busca a nota de um aluno em uma atividade específica.
+    
+    Retorna:
+    - {"sucesso": True, "nota": 8.5, "entregue": True}
+    - {"sucesso": False, "mensagem": "..."}
+    """
+    url = f"{SERVIDOR}/buscar_nota"
+
+    try:
+        resposta = requests.get(url, params={"id_aluno": id_aluno, "id_atividade": id_atividade})
+        resposta.raise_for_status()
+        return resposta.json()
     except requests.exceptions.RequestException:
         return {"sucesso": False, "mensagem": "Erro ao conectar no servidor"}

@@ -147,7 +147,7 @@ def listar_atividades_professor(id_professor: int = Query(..., description="ID d
 @app.post("/criar_atividades")
 async def criar_atividade(request: Request):
     """
-    Recebe dados de uma nova atividade do frontend e salva no banco.
+    Cria uma nova atividade, vincula às turmas selecionadas e inicializa notas para os alunos.
     Espera um JSON com:
     {
         "nome_atividade": "...",
@@ -175,12 +175,22 @@ async def criar_atividade(request: Request):
         )
         id_atividade = cursor.lastrowid
 
-        # Vincular atividade às turmas
+        # Vincular atividade às turmas e inicializar notas
         for turma_id in turmas:
+            # Vincula à turma
             cursor.execute(
                 "INSERT INTO Turma_Atividade (id_turma, id_atividade) VALUES (?, ?)",
                 (turma_id, id_atividade)
             )
+            # Seleciona todos os alunos da turma
+            cursor.execute("SELECT id_aluno FROM Aluno WHERE id_turma = ?", (turma_id,))
+            alunos = cursor.fetchall()
+            # Inicializa notas com NULL
+            for aluno in alunos:
+                cursor.execute(
+                    "INSERT INTO Notas (id_aluno, id_atividade, nota, entregue) VALUES (?, ?, NULL, 0)",
+                    (aluno["id_aluno"], id_atividade)
+                )
 
         banco.commit()
         banco.close()
@@ -190,6 +200,7 @@ async def criar_atividade(request: Request):
         banco.rollback()
         banco.close()
         return {"sucesso": False, "mensagem": str(e)}
+
 
 @app.put("/editar_atividade")
 async def editar_atividade(request: Request):
@@ -316,3 +327,33 @@ async def salvar_nota(request: Request):
         banco.rollback()
         banco.close()
         return {"sucesso": False, "mensagem": str(e)}
+
+@app.get("/buscar_nota")
+def buscar_nota(id_aluno: int = Query(..., description="ID do aluno"),
+                id_atividade: int = Query(..., description="ID da atividade")):
+    """
+    Busca a nota e status de entrega de um aluno em uma atividade específica.
+    Exemplo de chamada:
+    GET /buscar_nota?id_aluno=1&id_atividade=2
+    """
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    cursor.execute(
+        "SELECT nota, entregue FROM Notas WHERE id_aluno = ? AND id_atividade = ?",
+        (id_aluno, id_atividade)
+    )
+    nota = cursor.fetchone()
+    banco.close()
+
+    if nota:
+        return {
+            "sucesso": True,
+            "nota": nota["nota"] if nota["nota"] is not None else 0,
+            "entregue": bool(nota["entregue"])
+        }
+    else:
+        return {
+            "sucesso": False,
+            "mensagem": "Nenhuma nota encontrada para este aluno e atividade"
+        }
