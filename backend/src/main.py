@@ -357,3 +357,84 @@ def buscar_nota(id_aluno: int = Query(..., description="ID do aluno"),
             "sucesso": False,
             "mensagem": "Nenhuma nota encontrada para este aluno e atividade"
         }
+
+
+from fastapi import FastAPI, Query
+import sqlite3
+
+app = FastAPI()
+
+# Função auxiliar para conectar ao banco e retornar linhas como dict
+def get_banco():
+    con = sqlite3.connect("./database.db")
+    con.row_factory = sqlite3.Row
+    return con
+
+@app.get("/atividades_aluno")
+def listar_atividades_aluno(ra: str = Query(..., description="RA do aluno")):
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    # Pega o aluno pelo RA
+    cursor.execute("SELECT id_aluno, id_turma FROM Aluno WHERE ra = ?", (ra,))
+    aluno = cursor.fetchone()
+    if not aluno:
+        banco.close()
+        return {"sucesso": False, "mensagem": "Aluno não encontrado"}
+
+    id_aluno = aluno["id_aluno"]
+    id_turma = aluno["id_turma"]
+
+    # Busca atividades da turma e suas notas, incluindo professor e matéria
+    cursor.execute("""
+        SELECT 
+            A.id_atividade,
+            A.nome_atividade,
+            A.data_entrega,
+            N.nota,
+            N.entregue,
+            P.id_professor,
+            P.materia
+        FROM Atividades A
+        INNER JOIN Turma_Atividade TA ON A.id_atividade = TA.id_atividade
+        INNER JOIN Professores P ON P.id_professor = A.id_professor
+        LEFT JOIN Notas N ON N.id_atividade = A.id_atividade AND N.id_aluno = ?
+        WHERE TA.id_turma = ?
+    """, (id_aluno, id_turma))
+
+    atividades = [dict(row) for row in cursor.fetchall()]
+    banco.close()
+
+    return {"sucesso": True, "atividades": atividades}
+
+
+
+
+@app.get("/materias_aluno")
+def listar_materias_aluno(ra: str):
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    # Pega o ID da turma do aluno
+    cursor.execute("SELECT id_turma FROM Aluno WHERE ra = ?", (ra,))
+    aluno = cursor.fetchone()
+    if not aluno:
+        banco.close()
+        return {"sucesso": False, "mensagem": "Aluno não encontrado"}
+
+    id_turma = aluno["id_turma"]
+
+    # Pega professores dessa turma (que definem a matéria)
+    cursor.execute("""
+        SELECT P.id_professor, P.materia
+        FROM Professores P
+        JOIN Turma_Professor TP ON P.id_professor = TP.id_professor
+        WHERE TP.id_turma = ?
+    """, (id_turma,))
+    professores = cursor.fetchall()
+    banco.close()
+
+    # Retorna nome da matéria como 'materia' e id do professor
+    materias = [{"materia": p["materia"], "id_professor": p["id_professor"]} for p in professores]
+
+    return {"sucesso": True, "materias": materias}

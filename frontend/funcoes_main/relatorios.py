@@ -74,13 +74,11 @@ def carregar_relatorio_turma(self):
         self.tree_relatorio.insert("", END, values=valores)
 
 
-
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.lib import colors
 from datetime import datetime
-from tkinter import messagebox
 from tkinter import filedialog
 
 def gerar_relatorio_pdf(self):
@@ -255,7 +253,7 @@ def gerar_relatorio_pdf(self):
     c.drawString(60, y, f"Percentual de aprovação: {percentual_aprov:.1f}%")
 
     c.save()
-    messagebox.showinfo("Sucesso", f"Relatório salvo como relatorio_{turma_nome}.pdf")
+    messagebox.showinfo("Sucesso", f"Relatório salvo")
 
 
 

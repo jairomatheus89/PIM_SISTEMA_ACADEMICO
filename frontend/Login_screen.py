@@ -60,11 +60,24 @@ class TelaLogin:
     def voltar_escolha(self):
         self.master.title("Usuário")
         self.master.geometry("400x300")
+
+        # Esconde frame do professor e limpa campos
         self.frame_login_professor.pack_forget()
+        self.user_entry.delete(0, END)
+        self.password_entry.delete(0, END)
+
+        # Esconde frame do aluno e limpa dados
         if self.aluno_screen:
             self.aluno_screen.pack_forget()
-        self.frame_escolha.pack(expand=True)
+            self.aluno_screen.ra_entry.delete(0, END)
+            self.aluno_screen.materia_combobox.set("")
+            self.aluno_screen.materias_ids = []
+            self.aluno_screen.materias_nomes = []
+            self.aluno_screen.atividades_completas = []
+            self.aluno_screen.atualizar_tabela()
 
+        # Mostra tela de escolha de perfil
+        self.frame_escolha.pack(expand=True)
     # Login do professor
 
     from tkinter import messagebox
