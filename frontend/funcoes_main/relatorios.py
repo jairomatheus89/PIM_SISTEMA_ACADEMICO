@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from backend.api import *
 
+
 def mostrar_relatorios(self):
     frame = self.frames["relatorios"]
     for widget in frame.winfo_children():
@@ -74,15 +75,13 @@ def carregar_relatorio_turma(self):
 
 
 
-
-
-
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.lib import colors
 from datetime import datetime
 from tkinter import messagebox
+from tkinter import filedialog
 
 def gerar_relatorio_pdf(self):
     turma_nome = self.combo_turmas_relatorio.get()
@@ -111,7 +110,17 @@ def gerar_relatorio_pdf(self):
     
     semestre = "1º semestre" if datetime.now().month <= 6 else "2º semestre"
     ano = datetime.now().year
-    c = Canvas(f"relatorio_{turma_nome}.pdf", pagesize=A4)
+
+    caminho_pdf = filedialog.asksaveasfilename(
+    defaultextension=".pdf",
+    filetypes=[("Arquivos PDF", "*.pdf")],
+    initialfile=f"relatorio_{turma_nome}.pdf",
+    title="Salvar relatório como..."
+    )
+    if not caminho_pdf:  # Usuário cancelou
+        return
+
+    c = Canvas(caminho_pdf, pagesize=A4)
     largura, altura = A4
     y_inicial = altura - 50
     y = y_inicial
