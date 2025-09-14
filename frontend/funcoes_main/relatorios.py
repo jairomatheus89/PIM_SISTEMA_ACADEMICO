@@ -80,6 +80,8 @@ def carregar_relatorio_turma(self):
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
+from reportlab.lib import colors
+from datetime import datetime
 from tkinter import messagebox
 
 def gerar_relatorio_pdf(self):
@@ -106,37 +108,59 @@ def gerar_relatorio_pdf(self):
         messagebox.showinfo("Informação", "Não há atividades cadastradas para esta turma.")
         return
 
+    
+    semestre = "1º semestre" if datetime.now().month <= 6 else "2º semestre"
+    ano = datetime.now().year
     c = Canvas(f"relatorio_{turma_nome}.pdf", pagesize=A4)
     largura, altura = A4
     y_inicial = altura - 50
     y = y_inicial
+    
+    todas_medias = []
+    aprovados, reprovados = 0, 0
+    linha = 0  # para zebra style
+
+    # ---------- Cabeçalho ----------
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, y, f"Relatório de Notas - {turma_nome}")
+    y -= 20
+    c.setFont("Helvetica", 10)
+    c.drawString(50, y, f"Disciplina: {self.professor.get('materia', 'Não informada')}")
+    y -= 15
+    c.drawString(50, y, f"Professor: {self.professor.get('nome', 'Desconhecido')}")
+    y -= 15
+    c.drawString(50, y, f"Período letivo: {semestre} {ano}")
+    y -= 15
+    c.drawString(50, y, f"Data de emissão: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+    y -= 25
 
     def desenhar_cabecalho():
         nonlocal y
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, y, f"Relatório de Notas - Turma {turma_nome}")
-        y -= 25
-
         c.setFont("Helvetica-Bold", 10)
 
         # Colunas fixas
         x_nome, largura_nome = 50, 50
         x_ra, largura_ra = x_nome + largura_nome, 40
 
-        # Colunas atividades com largura dinâmica pelo título
+        # Colunas atividades
         x_atividades, largura_atividades = [], []
         x_atual = x_ra + largura_ra + 10
         for atividade in atividades:
-            largura_col = stringWidth(atividade["nome_atividade"][:12], "Helvetica-Bold", 10) + 20  # padding 20
+            largura_col = stringWidth(atividade["nome_atividade"][:12], "Helvetica-Bold", 10) + 20
             x_atividades.append(x_atual)
             largura_atividades.append(largura_col)
             x_atual += largura_col
 
-        # Colunas Média e Status
+        # Colunas finais
         x_media, largura_media = x_atual + 10, 40
         x_status, largura_status = x_media + largura_media + 10, 50
 
-        # Cabeçalho centralizado
+        # Fundo cinza
+        c.setFillColor(colors.lightgrey)
+        c.rect(45, y - 3, largura - 90, 18, fill=1, stroke=0)
+        c.setFillColor(colors.black)
+
+        # Títulos
         c.drawString(x_nome + (largura_nome - stringWidth("Nome", "Helvetica-Bold", 10))/2, y, "Nome")
         c.drawString(x_ra + (largura_ra - stringWidth("RA", "Helvetica-Bold", 10))/2, y, "RA")
         for idx, atividade in enumerate(atividades):
@@ -153,30 +177,78 @@ def gerar_relatorio_pdf(self):
 
     for aluno in alunos:
         notas_aluno = []
+
+        # Zebra style
+        if linha % 2 == 0:
+            c.setFillColor(colors.whitesmoke)
+            c.rect(45, y - 2, largura - 90, 15, fill=1, stroke=0)
+            c.setFillColor(colors.black)
+
+        # Nome e RA
         c.drawString(x_nome + (largura_nome - stringWidth(aluno["nome"][:10], "Helvetica", 10))/2, y, aluno["nome"][:10])
         c.drawString(x_ra + (largura_ra - stringWidth(aluno["ra"][:8], "Helvetica", 10))/2, y, aluno["ra"][:8])
 
+        # Atividades
         for idx, atividade in enumerate(atividades):
             nota_resp = buscar_nota_api(aluno["id_aluno"], atividade["id_atividade"])
             nota = nota_resp.get("nota", 0) if nota_resp.get("sucesso") else 0
             notas_aluno.append(nota)
             c.drawString(x_atividades[idx] + (largura_atividades[idx] - stringWidth(str(nota), "Helvetica", 10))/2, y, str(nota))
 
+        # Média e status
         media = sum(notas_aluno)/len(notas_aluno) if notas_aluno else 0
+        todas_medias.append(media)
         status = "Aprovado" if media >= 7 else "Reprovado"
 
         c.drawString(x_media + (largura_media - stringWidth(f"{media:.2f}", "Helvetica", 10))/2, y, f"{media:.2f}")
-        c.drawString(x_status + (largura_status - stringWidth(status, "Helvetica", 10))/2, y, status)
-        y -= 20
 
-        if y < 50:
+        # Cor no status
+        if status == "Aprovado":
+            c.setFillColor(colors.green)
+            aprovados += 1
+        else:
+            c.setFillColor(colors.red)
+            reprovados += 1
+
+        c.drawString(x_status + (largura_status - stringWidth(status, "Helvetica", 10))/2, y, status)
+        c.setFillColor(colors.black)
+
+        y -= 20
+        linha += 1
+
+        if y < 80:
             c.showPage()
             y = y_inicial
             x_nome, largura_nome, x_ra, largura_ra, x_atividades, largura_atividades, x_media, largura_media, x_status, largura_status = desenhar_cabecalho()
             c.setFont("Helvetica", 10)
 
+    # ---------- Estatísticas ----------
+    y -= 20
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Estatísticas da Turma:")
+    y -= 15
+    c.setFont("Helvetica", 10)
+
+    if todas_medias:
+        media_geral = sum(todas_medias)/len(todas_medias)
+        maior_media = max(todas_medias)
+        menor_media = min(todas_medias)
+        percentual_aprov = (aprovados/len(todas_medias))*100
+    else:
+        media_geral = maior_media = menor_media = percentual_aprov = 0
+
+    c.drawString(60, y, f"Média geral da turma: {media_geral:.2f}")
+    y -= 15
+    c.drawString(60, y, f"Maior média: {maior_media:.2f} | Menor média: {menor_media:.2f}")
+    y -= 15
+    c.drawString(60, y, f"Aprovados: {aprovados} | Reprovados: {reprovados}")
+    y -= 15
+    c.drawString(60, y, f"Percentual de aprovação: {percentual_aprov:.1f}%")
+
     c.save()
     messagebox.showinfo("Sucesso", f"Relatório salvo como relatorio_{turma_nome}.pdf")
+
+
 
 
 
