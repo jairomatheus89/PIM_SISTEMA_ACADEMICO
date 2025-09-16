@@ -31,14 +31,14 @@ class MainScreen:
         self.btn_turmas = Button(self.menu_frame, text="Minhas Turmas", command=lambda: self.mostrar_frame("turmas"))
         self.btn_turmas.grid(row=0, column=0, padx=5)
 
-        self.btn_outra1 = Button(self.menu_frame, text="Atividades", command=lambda: self.mostrar_frame("atividades"))
-        self.btn_outra1.grid(row=0, column=1, padx=5)
+        self.btn_atividades = Button(self.menu_frame, text="Atividades", command=lambda: self.mostrar_frame("atividades"))
+        self.btn_atividades.grid(row=0, column=1, padx=5)
 
-        self.btn_outra2 = Button(self.menu_frame, text="Adicionar Notas", command=lambda: self.mostrar_frame("notas"))
-        self.btn_outra2.grid(row=0, column=2, padx=5)
+        self.btn_add_notas = Button(self.menu_frame, text="Adicionar Notas", command=lambda: self.mostrar_frame("notas"))
+        self.btn_add_notas.grid(row=0, column=2, padx=5)
 
-        self.btn_outra3 = Button(self.menu_frame, text="Relatórios", command=lambda: self.mostrar_frame("relatorios"))
-        self.btn_outra3.grid(row=0, column=3, padx=5)
+        self.btn_relatorios = Button(self.menu_frame, text="Relatórios", command=lambda: self.mostrar_frame("relatorios"))
+        self.btn_relatorios.grid(row=0, column=3, padx=5)
 
         # Frames de conteúdo
         self.frames = {}
@@ -51,7 +51,7 @@ class MainScreen:
         self.frames["atividades"] = Frame(master)
         Label(self.frames["atividades"], text="Gerenciar Atividades").pack()
 
-        # Outras funcionalidades
+        
         self.frames["notas"] = Frame(master)
         Label(self.frames["notas"], text="Gerenciar Notas").pack()
 

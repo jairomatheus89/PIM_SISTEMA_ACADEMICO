@@ -77,7 +77,7 @@ def mostrar_atividades(self):
     for col, txt, w in [("nome", "Nome", 150), ("descricao", "Descrição", 200),
                          ("turma", "Turma", 200), ("data_entrega", "Data de Entrega", 100)]:
         self.tree_atividades.heading(col, text=txt)
-        self.tree_atividades.column(col, width=w, anchor=W, stretch=False)
+        self.tree_atividades.column(col, width=w, anchor=CENTER, stretch=False)
     self.tree_atividades.pack()
 
     # Botões principais

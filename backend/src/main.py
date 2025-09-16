@@ -80,34 +80,6 @@ def listar_alunos(id_turma: int = Query(..., description="ID da turma")):
         return {"sucesso": False, "mensagem": "Nenhum aluno encontrado para essa turma"}
     
     
-@app.get("/atividades_aluno")
-def listar_atividades_aluno(ra: str = Query(..., description="RA do aluno")):
-    banco = get_banco()
-    cursor = banco.cursor()
-
-    # Primeiro pega o ID do aluno pelo RA
-    cursor.execute("SELECT id_aluno FROM Aluno WHERE ra = ?", (ra,))
-    aluno = cursor.fetchone()
-    if not aluno:
-        banco.close()
-        return {"sucesso": False, "mensagem": "Aluno não encontrado"}
-
-    id_aluno = aluno["id_aluno"]
-
-    cursor.execute("""
-        SELECT A.nome_atividade, A.data_entrega, N.nota, N.entregue
-        FROM Atividades A
-        LEFT JOIN Turma_Atividade TA ON A.id_atividade = TA.id_atividade
-        LEFT JOIN Aluno Al ON Al.id_turma = TA.id_turma
-        LEFT JOIN Notas N ON A.id_atividade = N.id_atividade AND N.id_aluno = Al.id_aluno
-        WHERE Al.id_aluno = ?
-    """, (id_aluno,))
-
-    atividades = [dict(row) for row in cursor.fetchall()]
-    banco.close()
-
-    return {"sucesso": True, "atividades": atividades}
-
 @app.get("/atividades_professor")
 def listar_atividades_professor(id_professor: int = Query(..., description="ID do professor")):
     banco = get_banco()
@@ -143,6 +115,62 @@ def listar_atividades_professor(id_professor: int = Query(..., description="ID d
     banco.close()
     return {"sucesso": True, "atividades": resultado}
 
+@app.get("/atividades_aluno")
+def listar_atividades_aluno(ra: str = Query(..., description="RA do aluno")):
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    # Primeiro pega o ID do aluno pelo RA
+    cursor.execute("SELECT id_aluno FROM Aluno WHERE ra = ?", (ra,))
+    aluno = cursor.fetchone()
+    if not aluno:
+        banco.close()
+        return {"sucesso": False, "mensagem": "Aluno não encontrado"}
+
+    id_aluno = aluno["id_aluno"]
+
+    cursor.execute("""
+        SELECT A.nome_atividade, A.data_entrega, N.nota, N.entregue
+        FROM Atividades A
+        LEFT JOIN Turma_Atividade TA ON A.id_atividade = TA.id_atividade
+        LEFT JOIN Aluno Al ON Al.id_turma = TA.id_turma
+        LEFT JOIN Notas N ON A.id_atividade = N.id_atividade AND N.id_aluno = Al.id_aluno
+        WHERE Al.id_aluno = ?
+    """, (id_aluno,))
+
+    atividades = [dict(row) for row in cursor.fetchall()]
+    banco.close()
+
+    return {"sucesso": True, "atividades": atividades}
+
+@app.get("/materias_aluno")
+def listar_materias_aluno(ra: str):
+    banco = get_banco()
+    cursor = banco.cursor()
+
+    # Pega o ID da turma do aluno
+    cursor.execute("SELECT id_turma FROM Aluno WHERE ra = ?", (ra,))
+    aluno = cursor.fetchone()
+    if not aluno:
+        banco.close()
+        return {"sucesso": False, "mensagem": "Aluno não encontrado"}
+
+    id_turma = aluno["id_turma"]
+
+    # Pega professores dessa turma (que definem a matéria)
+    cursor.execute("""
+        SELECT P.id_professor, P.materia
+        FROM Professores P
+        JOIN Turma_Professor TP ON P.id_professor = TP.id_professor
+        WHERE TP.id_turma = ?
+    """, (id_turma,))
+    professores = cursor.fetchall()
+    banco.close()
+
+    # Retorna nome da matéria como 'materia' e id do professor
+    materias = [{"materia": p["materia"], "id_professor": p["id_professor"]} for p in professores]
+
+    return {"sucesso": True, "materias": materias}
 
 @app.post("/criar_atividades")
 async def criar_atividade(request: Request):
@@ -200,7 +228,6 @@ async def criar_atividade(request: Request):
         banco.rollback()
         banco.close()
         return {"sucesso": False, "mensagem": str(e)}
-
 
 @app.put("/editar_atividade")
 async def editar_atividade(request: Request):
@@ -358,34 +385,22 @@ def buscar_nota(id_aluno: int = Query(..., description="ID do aluno"),
             "mensagem": "Nenhuma nota encontrada para este aluno e atividade"
         }
 
-
-from fastapi import FastAPI, Query
-import sqlite3
-
-app = FastAPI()
-
-# Função auxiliar para conectar ao banco e retornar linhas como dict
-def get_banco():
-    con = sqlite3.connect("./database.db")
-    con.row_factory = sqlite3.Row
-    return con
-
-@app.get("/atividades_aluno")
-def listar_atividades_aluno(ra: str = Query(..., description="RA do aluno")):
+@app.get("/atividades_aluno_id")
+def listar_atividades_aluno(id_aluno: int = Query(..., description="ID do aluno")):
     banco = get_banco()
     cursor = banco.cursor()
 
-    # Pega o aluno pelo RA
-    cursor.execute("SELECT id_aluno, id_turma FROM Aluno WHERE ra = ?", (ra,))
+    # Pega a turma e o nome do aluno
+    cursor.execute("SELECT id_turma, nome FROM Aluno WHERE id_aluno = ?", (id_aluno,))
     aluno = cursor.fetchone()
     if not aluno:
         banco.close()
         return {"sucesso": False, "mensagem": "Aluno não encontrado"}
 
-    id_aluno = aluno["id_aluno"]
     id_turma = aluno["id_turma"]
+    nome_aluno = aluno["nome"]
 
-    # Busca atividades da turma e suas notas, incluindo professor e matéria
+    # Busca atividades da turma e suas notas
     cursor.execute("""
         SELECT 
             A.id_atividade,
@@ -405,28 +420,29 @@ def listar_atividades_aluno(ra: str = Query(..., description="RA do aluno")):
     atividades = [dict(row) for row in cursor.fetchall()]
     banco.close()
 
-    return {"sucesso": True, "atividades": atividades}
+    for a in atividades:
+        a["entregue"] = bool(a.get("entregue", 0))
+
+    return {"sucesso": True, "nome_aluno": nome_aluno, "atividades": atividades}
 
 
-
-
-@app.get("/materias_aluno")
-def listar_materias_aluno(ra: str):
+@app.get("/materias_aluno_id")
+def listar_materias_aluno(id_aluno: int = Query(..., description="ID do aluno")):
     banco = get_banco()
     cursor = banco.cursor()
 
-    # Pega o ID da turma do aluno
-    cursor.execute("SELECT id_turma FROM Aluno WHERE ra = ?", (ra,))
+    # Pega a turma e o nome do aluno
+    cursor.execute("SELECT id_turma, nome FROM Aluno WHERE id_aluno = ?", (id_aluno,))
     aluno = cursor.fetchone()
     if not aluno:
         banco.close()
         return {"sucesso": False, "mensagem": "Aluno não encontrado"}
 
     id_turma = aluno["id_turma"]
+    nome_aluno = aluno["nome"]
 
-    # Pega professores dessa turma (que definem a matéria)
     cursor.execute("""
-        SELECT P.id_professor, P.materia
+        SELECT P.id_professor, P.materia, P.nome AS nome_professor
         FROM Professores P
         JOIN Turma_Professor TP ON P.id_professor = TP.id_professor
         WHERE TP.id_turma = ?
@@ -434,7 +450,27 @@ def listar_materias_aluno(ra: str):
     professores = cursor.fetchall()
     banco.close()
 
-    # Retorna nome da matéria como 'materia' e id do professor
-    materias = [{"materia": p["materia"], "id_professor": p["id_professor"]} for p in professores]
+    materias = [
+        {
+            "materia": p["materia"],
+            "id_professor": p["id_professor"],
+            "nome_professor": p["nome_professor"]
+        } 
+        for p in professores
+    ]
 
-    return {"sucesso": True, "materias": materias}
+    return {"sucesso": True, "nome_aluno": nome_aluno, "materias": materias}
+
+
+@app.get("/pegar_ra_id_alunos")
+def pegar_ra_id_alunos():
+    banco = get_banco()
+    cursor = banco.cursor()
+    # Ordena por id_aluno, não por RA
+    cursor.execute("SELECT id_aluno, ra FROM Aluno ORDER BY id_aluno ASC")
+    alunos = cursor.fetchall()
+    banco.close()
+
+    # Transforma cada registro em dict
+    alunos_lista = [{"id_aluno": a["id_aluno"], "ra": a["ra"]} for a in alunos]
+    return {"sucesso": True, "alunos": alunos_lista}

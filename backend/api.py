@@ -57,6 +57,23 @@ def listar_atividades_aluno_api(ra):
     except requests.exceptions.RequestException as e:
         return {"sucesso": False, "mensagem": f"Erro ao conectar na API: {str(e)}"}
 
+def listar_materias_aluno_api(ra: str):
+    """
+    Chama o endpoint /materias_aluno para listar as matérias do aluno pelo RA.
+    Retorna:
+        {"sucesso": True, "materias": [...]}
+        {"sucesso": False, "mensagem": "..."}
+    """
+    url = f"{SERVIDOR}/materias_aluno?ra={ra}"
+
+    try:
+        resposta = requests.get(url, timeout=5)
+        resposta.raise_for_status()
+        return resposta.json()
+    except requests.exceptions.RequestException:
+        return {"sucesso": False, "mensagem": "Erro ao conectar no servidor"}
+
+
 def listar_atividades_api(id_professor):
     url = f"{SERVIDOR}/atividades_professor?id_professor={id_professor}"
     try:
@@ -84,8 +101,7 @@ def criar_atividade_api(payload):
         return resposta.json()  # retorna o JSON do backend
     except requests.exceptions.RequestException:
         return {"sucesso": False, "mensagem": "Erro ao conectar no servidor!"}
-
-    
+ 
 def editar_atividade_api(payload):
     """
     Chama a API para editar uma atividade existente.
@@ -142,7 +158,6 @@ def salvar_nota_api(payload):
         # Inclui a mensagem de erro técnico para depuração sem quebrar o fluxo
         return {"sucesso": False, "mensagem": f"Erro ao conectar no servidor"}
 
-
 def buscar_nota_api(id_aluno, id_atividade):
     """
     Busca a nota de um aluno em uma atividade específica.
@@ -160,43 +175,56 @@ def buscar_nota_api(id_aluno, id_atividade):
     except requests.exceptions.RequestException:
         return {"sucesso": False, "mensagem": "Erro ao conectar no servidor"}
 
-def listar_materias_aluno_api(ra: str):
-    """
-    Chama o endpoint /materias_aluno para listar as matérias do aluno pelo RA.
-    Retorna:
-        {"sucesso": True, "materias": [...]}
-        {"sucesso": False, "mensagem": "..."}
-    """
-    url = f"{SERVIDOR}/materias_aluno?ra={ra}"
 
+def listar_materias_aluno_id_api(id_aluno: int):
+    url = f"{SERVIDOR}/materias_aluno_id?id_aluno={id_aluno}"
     try:
         resposta = requests.get(url, timeout=5)
         resposta.raise_for_status()
-        return resposta.json()
+        dados = resposta.json()
+        return {
+            "sucesso": dados.get("sucesso", False),
+            "materias": dados.get("materias", []),
+            "nome_aluno": dados.get("nome_aluno", "Aluno")
+        }
     except requests.exceptions.RequestException:
-        return {"sucesso": False, "mensagem": "Erro ao conectar no servidor"}
-    
-def listar_atividades_aluno_api(ra: str):
-    """
-    Chama o endpoint /atividades_aluno para listar todas as atividades de um aluno pelo RA.
-    Retorna:
-        {"sucesso": True, "atividades": [...]}
-        {"sucesso": False, "mensagem": "..."}
-    """
-    url = f"{SERVIDOR}/atividades_aluno?ra={ra}"
+        return {"sucesso": False, "mensagem": "Erro ao conectar no servidor", "nome_aluno": "Aluno"}
 
+
+def listar_atividades_aluno_id_api(id_aluno: int):
+    url = f"{SERVIDOR}/atividades_aluno_id?id_aluno={id_aluno}"
     try:
         resposta = requests.get(url, timeout=5)
         resposta.raise_for_status()
         dados = resposta.json()
 
-        # Garante que cada atividade tenha a chave 'materia'
-        if dados.get("sucesso") and "atividades" in dados:
-            for atividade in dados["atividades"]:
-                if "materia" not in atividade or atividade["materia"] is None:
-                    atividade["materia"] = "N/A"
+        for atividade in dados.get("atividades", []):
+            if "materia" not in atividade or atividade["materia"] is None:
+                atividade["materia"] = "N/A"
+            if "id_professor" not in atividade or atividade["id_professor"] is None:
+                atividade["id_professor"] = -1
 
-        return dados
+        return {
+            "sucesso": dados.get("sucesso", False),
+            "atividades": dados.get("atividades", []),
+            "nome_aluno": dados.get("nome_aluno", "Aluno")
+        }
     except requests.exceptions.RequestException:
-        return {"sucesso": False, "mensagem": "Erro ao conectar no servidor"}
+        return {"sucesso": False, "mensagem": "Erro ao conectar no servidor", "nome_aluno": "Aluno"}
 
+
+def pegar_ra_id_alunos_api():
+    """
+    Chama o endpoint /pegar_ra_id_alunos para obter todos os RAs e IDs.
+    Retorna lista de dicionários: [{"ra": "123456", "id_aluno": 1}, ...]
+    """
+    url = f"{SERVIDOR}/pegar_ra_id_alunos"
+    try:
+        resposta = requests.get(url, timeout=5)
+        resposta.raise_for_status()
+        dados = resposta.json()
+        if dados.get("sucesso") and "alunos" in dados:
+            return dados["alunos"]
+        return []
+    except requests.exceptions.RequestException:
+        return []

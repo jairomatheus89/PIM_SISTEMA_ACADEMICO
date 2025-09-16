@@ -105,15 +105,14 @@ def gerar_relatorio_pdf(self):
         messagebox.showinfo("Informação", "Não há atividades cadastradas para esta turma.")
         return
 
-    
     semestre = "1º semestre" if datetime.now().month <= 6 else "2º semestre"
     ano = datetime.now().year
 
     caminho_pdf = filedialog.asksaveasfilename(
-    defaultextension=".pdf",
-    filetypes=[("Arquivos PDF", "*.pdf")],
-    initialfile=f"relatorio_{turma_nome}.pdf",
-    title="Salvar relatório como..."
+        defaultextension=".pdf",
+        filetypes=[("Arquivos PDF", "*.pdf")],
+        initialfile=f"relatorio_{turma_nome}.pdf",
+        title="Salvar relatório como..."
     )
     if not caminho_pdf:  # Usuário cancelou
         return
@@ -122,7 +121,7 @@ def gerar_relatorio_pdf(self):
     largura, altura = A4
     y_inicial = altura - 50
     y = y_inicial
-    
+
     todas_medias = []
     aprovados, reprovados = 0, 0
     linha = 0  # para zebra style
@@ -146,8 +145,8 @@ def gerar_relatorio_pdf(self):
         c.setFont("Helvetica-Bold", 10)
 
         # Colunas fixas
-        x_nome, largura_nome = 50, 50
-        x_ra, largura_ra = x_nome + largura_nome, 40
+        x_nome, largura_nome = 50, 100
+        x_ra, largura_ra = x_nome + largura_nome + 1, 40
 
         # Colunas atividades
         x_atividades, largura_atividades = [], []
@@ -168,13 +167,13 @@ def gerar_relatorio_pdf(self):
         c.setFillColor(colors.black)
 
         # Títulos
-        c.drawString(x_nome + (largura_nome - stringWidth("Nome", "Helvetica-Bold", 10))/2, y, "Nome")
-        c.drawString(x_ra + (largura_ra - stringWidth("RA", "Helvetica-Bold", 10))/2, y, "RA")
+        c.drawString(x_nome + 2, y, "Nome")  # Alinhado à esquerda
+        c.drawString(x_ra + (largura_ra - stringWidth("RA", "Helvetica-Bold", 10)) / 2, y, "RA")
         for idx, atividade in enumerate(atividades):
             texto = atividade["nome_atividade"][:12]
-            c.drawString(x_atividades[idx] + (largura_atividades[idx] - stringWidth(texto, "Helvetica-Bold", 10))/2, y, texto)
-        c.drawString(x_media + (largura_media - stringWidth("Média", "Helvetica-Bold", 10))/2, y, "Média")
-        c.drawString(x_status + (largura_status - stringWidth("Status", "Helvetica-Bold", 10))/2, y, "Status")
+            c.drawString(x_atividades[idx] + (largura_atividades[idx] - stringWidth(texto, "Helvetica-Bold", 10)) / 2, y, texto)
+        c.drawString(x_media + (largura_media - stringWidth("Média", "Helvetica-Bold", 10)) / 2, y, "Média")
+        c.drawString(x_status + (largura_status - stringWidth("Status", "Helvetica-Bold", 10)) / 2, y, "Status")
 
         y -= 20
         return x_nome, largura_nome, x_ra, largura_ra, x_atividades, largura_atividades, x_media, largura_media, x_status, largura_status
@@ -192,22 +191,22 @@ def gerar_relatorio_pdf(self):
             c.setFillColor(colors.black)
 
         # Nome e RA
-        c.drawString(x_nome + (largura_nome - stringWidth(aluno["nome"][:10], "Helvetica", 10))/2, y, aluno["nome"][:10])
-        c.drawString(x_ra + (largura_ra - stringWidth(aluno["ra"][:8], "Helvetica", 10))/2, y, aluno["ra"][:8])
+        c.drawString(x_nome + 2, y, aluno["nome"][:15])  # Nome alinhado à esquerda
+        c.drawString(x_ra + (largura_ra - stringWidth(aluno["ra"][:8], "Helvetica", 10)) / 2, y, aluno["ra"][:8])
 
         # Atividades
         for idx, atividade in enumerate(atividades):
             nota_resp = buscar_nota_api(aluno["id_aluno"], atividade["id_atividade"])
             nota = nota_resp.get("nota", 0) if nota_resp.get("sucesso") else 0
             notas_aluno.append(nota)
-            c.drawString(x_atividades[idx] + (largura_atividades[idx] - stringWidth(str(nota), "Helvetica", 10))/2, y, str(nota))
+            c.drawString(x_atividades[idx] + (largura_atividades[idx] - stringWidth(str(nota), "Helvetica", 10)) / 2, y, str(nota))
 
         # Média e status
         media = sum(notas_aluno)/len(notas_aluno) if notas_aluno else 0
         todas_medias.append(media)
         status = "Aprovado" if media >= 7 else "Reprovado"
 
-        c.drawString(x_media + (largura_media - stringWidth(f"{media:.2f}", "Helvetica", 10))/2, y, f"{media:.2f}")
+        c.drawString(x_media + (largura_media - stringWidth(f"{media:.2f}", "Helvetica", 10)) / 2, y, f"{media:.2f}")
 
         # Cor no status
         if status == "Aprovado":
@@ -217,7 +216,7 @@ def gerar_relatorio_pdf(self):
             c.setFillColor(colors.red)
             reprovados += 1
 
-        c.drawString(x_status + (largura_status - stringWidth(status, "Helvetica", 10))/2, y, status)
+        c.drawString(x_status + (largura_status - stringWidth(status, "Helvetica", 10)) / 2, y, status)
         c.setFillColor(colors.black)
 
         y -= 20
@@ -254,6 +253,7 @@ def gerar_relatorio_pdf(self):
 
     c.save()
     messagebox.showinfo("Sucesso", f"Relatório salvo")
+
 
 
 

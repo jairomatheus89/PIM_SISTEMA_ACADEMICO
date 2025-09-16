@@ -56,7 +56,6 @@ class TelaLogin:
             self.aluno_screen = AlunoScreen(self.master, self.voltar_escolha)
         self.aluno_screen.pack(expand=True, fill="both")
 
-    # Volta para a escolha de perfil
     def voltar_escolha(self):
         self.master.title("Usuário")
         self.master.geometry("400x300")
@@ -66,21 +65,23 @@ class TelaLogin:
         self.user_entry.delete(0, END)
         self.password_entry.delete(0, END)
 
-        # Esconde frame do aluno e limpa dados
+        # Esconde frame do aluno e limpa dados de forma segura
         if self.aluno_screen:
             self.aluno_screen.pack_forget()
-            self.aluno_screen.ra_entry.delete(0, END)
-            self.aluno_screen.materia_combobox.set("")
+            if hasattr(self.aluno_screen, "ra_entry"):
+                self.aluno_screen.ra_entry.delete(0, END)
+            if hasattr(self.aluno_screen, "materia_combobox"):
+                self.aluno_screen.materia_combobox.set("")
             self.aluno_screen.materias_ids = []
             self.aluno_screen.materias_nomes = []
             self.aluno_screen.atividades_completas = []
-            self.aluno_screen.atualizar_tabela()
+            # Atualiza tabela somente se a treeview existir
+            if hasattr(self.aluno_screen, "tree"):
+                self.aluno_screen.atualizar_tabela()
 
         # Mostra tela de escolha de perfil
         self.frame_escolha.pack(expand=True)
-    # Login do professor
-
-    from tkinter import messagebox
+    
 
     def login_professor(self):
         self.master.title("Login Professor")
