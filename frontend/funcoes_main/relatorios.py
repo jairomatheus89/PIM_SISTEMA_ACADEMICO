@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from backend.api import *
+from backend.src.modulo_c import calcular_media_status
 
 
 def mostrar_relatorios(self):
@@ -67,8 +68,9 @@ def carregar_relatorio_turma(self):
             nota = nota_resp.get("nota", 0) if nota_resp.get("sucesso") else 0
             notas_aluno.append(nota)
 
-        media = sum(notas_aluno)/len(notas_aluno) if notas_aluno else 0
-        status = "Aprovado" if media >= 7 else "Reprovado"
+        #PUXA DO MODULO C
+        media, status = calcular_media_status(notas_aluno, media_minima=7)
+
 
         valores = [aluno["nome"], aluno["ra"]] + notas_aluno + [f"{media:.2f}", status]
         self.tree_relatorio.insert("", END, values=valores)
