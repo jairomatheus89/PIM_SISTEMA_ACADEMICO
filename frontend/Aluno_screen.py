@@ -301,7 +301,7 @@ class AlunoScreen(Frame):
 
         # Nome e RA do aluno
         nome_aluno = resultado.get("nome_aluno", "Aluno")
-        ra_aluno = resultado.get("ra", self.ra_entry.get())
+        ra_aluno = resultado["ra"]
 
         valores = [nome_aluno, ra_aluno] + notas + [f"{media:.2f}", status]
         self.tree_notas.insert("", END, values=valores)

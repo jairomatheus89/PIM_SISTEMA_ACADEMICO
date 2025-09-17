@@ -207,10 +207,17 @@ def listar_atividades_aluno_id_api(id_aluno: int):
         return {
             "sucesso": dados.get("sucesso", False),
             "atividades": dados.get("atividades", []),
-            "nome_aluno": dados.get("nome_aluno", "Aluno")
+            "nome_aluno": dados.get("nome_aluno", "Aluno"),
+            "ra": dados.get("ra", "")
         }
     except requests.exceptions.RequestException:
-        return {"sucesso": False, "mensagem": "Erro ao conectar no servidor", "nome_aluno": "Aluno"}
+        return {
+            "sucesso": False,
+            "mensagem": "Erro ao conectar no servidor",
+            "nome_aluno": "Aluno",
+            "ra": ""
+        }
+
 
 
 def pegar_ra_id_alunos_api():

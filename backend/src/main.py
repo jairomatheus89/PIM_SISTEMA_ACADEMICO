@@ -390,8 +390,8 @@ def listar_atividades_aluno(id_aluno: int = Query(..., description="ID do aluno"
     banco = get_banco()
     cursor = banco.cursor()
 
-    # Pega a turma e o nome do aluno
-    cursor.execute("SELECT id_turma, nome FROM Aluno WHERE id_aluno = ?", (id_aluno,))
+    # Pega a turma, nome e RA do aluno
+    cursor.execute("SELECT id_turma, nome, ra FROM Aluno WHERE id_aluno = ?", (id_aluno,))
     aluno = cursor.fetchone()
     if not aluno:
         banco.close()
@@ -399,6 +399,7 @@ def listar_atividades_aluno(id_aluno: int = Query(..., description="ID do aluno"
 
     id_turma = aluno["id_turma"]
     nome_aluno = aluno["nome"]
+    ra_aluno = aluno["ra"] 
 
     # Busca atividades da turma e suas notas
     cursor.execute("""
@@ -423,7 +424,12 @@ def listar_atividades_aluno(id_aluno: int = Query(..., description="ID do aluno"
     for a in atividades:
         a["entregue"] = bool(a.get("entregue", 0))
 
-    return {"sucesso": True, "nome_aluno": nome_aluno, "atividades": atividades}
+    return {
+        "sucesso": True,
+        "nome_aluno": nome_aluno,
+        "ra": ra_aluno, 
+        "atividades": atividades
+    }
 
 
 @app.get("/materias_aluno_id")
