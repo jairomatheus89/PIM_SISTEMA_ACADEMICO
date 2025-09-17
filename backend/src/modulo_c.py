@@ -1,5 +1,5 @@
 import random
-
+#uma funcao em relatorio e outra na aluno_screen
 def calcular_media_status(notas, media_minima=7):
     """
     Calcula a média de uma lista de notas e retorna a média e status.
