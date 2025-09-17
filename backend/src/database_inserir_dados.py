@@ -1,5 +1,5 @@
 import sqlite3
-from algoritimo import gerar_ras  # Importa a função de outro módulo
+from modulo_c import gerar_ras   # Importa a função de outro módulo
 
 # -----------------------------
 # Conexão com o banco
