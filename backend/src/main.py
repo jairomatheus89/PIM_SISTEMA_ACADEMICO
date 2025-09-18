@@ -2,7 +2,7 @@ import sqlite3
 from fastapi import FastAPI, Request ,Query
 from fastapi.middleware.cors import CORSMiddleware
 
-#python -m uvicorn main:app --host 26.207.69.216 --port 8000 --reload
+#python -m uvicorn main:app --host 192.168.1.104 --port 8000 --reload
 
 # Função para conectar no banco
 def get_banco():
