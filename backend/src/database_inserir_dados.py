@@ -1,5 +1,5 @@
 import sqlite3
-from modulo_c import gerar_ras   # Importa a função de outro módulo
+from backend.src.gerador import geradorzin   # Importa a função de outro módulo
 
 # -----------------------------
 # Conexão com o banco
@@ -100,23 +100,25 @@ for id_turma, nome_turma in todas_turmas:
         """, (id_turma, id_professor))
 
 # -----------------------------
-# Gerar RAs aleatórios para todos os alunos
-# -----------------------------
-total_alunos = sum(len(turma) for turma in nomes)
-ras_gerados = gerar_ras(total_alunos)  # gera RAs únicos aleatórios
-indice_ra = 0
-
-# -----------------------------
+# Gerar RAs aleatórios para cada aluno
+# e
 # Inserir alunos usando nomes e RAs aleatórios
 # -----------------------------
 for turma_index, (id_turma, nome_turma) in enumerate(todas_turmas):
     for nome_aluno in nomes[turma_index]:
-        ra = str(ras_gerados[indice_ra])
+        while True: 
+
+            ra = str(geradorzin()) # gera o RA
+
+            cursor.execute("SELECT 1 FROM Aluno WHERE ra = ?", (ra,)) # Verifica se ele ja existe no BD
+
+            if not cursor.fetchone(): # Se nao existe quebra o looping
+                break
+            
         cursor.execute("""
             INSERT INTO Aluno (id_turma, nome, ra)
             VALUES (?, ?, ?)
         """, (id_turma, nome_aluno, ra))
-        indice_ra += 1
 
 # -----------------------------
 # Finalizar

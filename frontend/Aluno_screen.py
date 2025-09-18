@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk, messagebox
 from backend.api import listar_atividades_aluno_id_api, listar_materias_aluno_id_api, pegar_ra_id_alunos_api
 from backend.src.algoritimo import merge_sort, busca_binaria  
-from backend.src.modulo_c import calcular_media_status
+from backend.src.gerador import calcular_media_status
 
 
 class AlunoScreen(Frame):

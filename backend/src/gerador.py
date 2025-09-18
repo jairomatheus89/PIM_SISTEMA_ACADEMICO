@@ -1,0 +1,14 @@
+import ctypes
+import os
+
+# Puxa a dll
+
+funcao = ctypes.CDLL("./ra_gerador.dll")
+
+# Oq a funçao retorna?
+
+funcao.gerar_ra.restype = ctypes.c_int #retorna int
+
+# Função que será chamada externamente
+def geradorzin():
+    return funcao.gerar_ra()
