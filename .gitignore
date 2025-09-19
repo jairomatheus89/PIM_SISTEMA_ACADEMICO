@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.log
+
+# Virtual env
+venv/
+.env/
+.venv/
+env/
+ENV/
+pip-wheel-metadata/
+
+# IDEs / editores
+.vscode/
+.idea/
+*.iml
+
+# Testes / coverage
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# Configs locais
+*.env
+*.ini
+*.local
+*.sqlite3
+
+# Mac/Linux/Windows “lixo”
+.DS_Store
+Thumbs.db
