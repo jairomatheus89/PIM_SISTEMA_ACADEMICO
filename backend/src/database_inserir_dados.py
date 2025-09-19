@@ -1,10 +1,10 @@
 import sqlite3
-from modulo_c import gerar_ras   # Importa a função de outro módulo
+from moduloC.conversor import geradorzin   # Importa a função de outro módulo
 
 # -----------------------------
 # Conexão com o banco
 # -----------------------------
-banco = sqlite3.connect("database.db")
+banco = sqlite3.connect("C:/Users/USER/Documents/GitHub/PIM_SISTEMA_ACADEMICO/backend/src/database.db")
 cursor = banco.cursor()
 
 # -----------------------------
@@ -101,22 +101,23 @@ for id_turma, nome_turma in todas_turmas:
 
 # -----------------------------
 # Gerar RAs aleatórios para todos os alunos
-# -----------------------------
-total_alunos = sum(len(turma) for turma in nomes)
-ras_gerados = gerar_ras(total_alunos)  # gera RAs únicos aleatórios
-indice_ra = 0
-
-# -----------------------------
+# e
 # Inserir alunos usando nomes e RAs aleatórios
 # -----------------------------
 for turma_index, (id_turma, nome_turma) in enumerate(todas_turmas):
     for nome_aluno in nomes[turma_index]:
-        ra = str(ras_gerados[indice_ra])
+        while True:
+            ra = str(geradorzin())  # gera RA via módulo C
+            # verifica se o RA já existe no banco
+            cursor.execute("SELECT 1 FROM Aluno WHERE ra = ?", (ra,))
+            if not cursor.fetchone():  # não existe -> OK
+                break  # sai do loop
+        # insere o aluno com RA único
         cursor.execute("""
             INSERT INTO Aluno (id_turma, nome, ra)
             VALUES (?, ?, ?)
         """, (id_turma, nome_aluno, ra))
-        indice_ra += 1
+
 
 # -----------------------------
 # Finalizar

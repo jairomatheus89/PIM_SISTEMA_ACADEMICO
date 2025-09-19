@@ -8,8 +8,8 @@ funcao = ctypes.CDLL("C:/Users/USER/Documents/GitHub/PIM_SISTEMA_ACADEMICO/Backe
 
 # Oq a funçao retorna?
 
-funcao.gerar_ra.restype = ctypes.c_int #retorna int
+funcao.gerador_ra.restype = ctypes.c_int #retorna int
 
 # Função que será chamada externamente
 def geradorzin():
-    return funcao.gerar_ra()
+    return funcao.gerador_ra()

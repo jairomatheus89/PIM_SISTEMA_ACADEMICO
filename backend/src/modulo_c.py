@@ -1,4 +1,3 @@
-import random
 #uma funcao em relatorio e outra na aluno_screen
 def calcular_media_status(notas, media_minima=7):
     """
@@ -15,12 +14,3 @@ def calcular_media_status(notas, media_minima=7):
     media = sum(notas_numericas) / len(notas_numericas)
     status = "Aprovado" if media >= media_minima else "Reprovado"
     return media, status
-
-
-def gerar_ras(qtd=30, digitos=6):
-    """Gera uma lista de RAs aleatórios únicos."""
-    ras = set()
-    while len(ras) < qtd:
-        ra = random.randint(10**(digitos-1), 10**digitos - 1)
-        ras.add(ra)
-    return list(ras)
