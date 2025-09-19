@@ -2,7 +2,7 @@ import requests
 
 #sempre altetar caso mude de ip e porta
 
-SERVIDOR = "http://192.168.1.104:8000"
+SERVIDOR = "http://10.0.1.171:8000"
 
 
 def autenticar_usuario_api(login, senha):
