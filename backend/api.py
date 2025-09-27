@@ -2,7 +2,7 @@ import requests
 
 #sempre altetar caso mude de ip e porta
 
-SERVIDOR = "http://26.207.69.216:8000"
+SERVIDOR = "http://localhost:8000"
 
 
 def autenticar_usuario_api(login, senha):
@@ -32,10 +32,10 @@ def listar_turmas_api(id_professor):
         return {"sucesso": False, "mensagem": f"Erro de conexão: {str(e)}"}
     
 def listar_alunos_api(id_turma):
-    """
-    Chama a API para listar alunos de uma turma específica.
-    Retorna um dicionário com 'sucesso' e a lista de alunos.
-    """
+    # """
+    # Chama a API para listar alunos de uma turma específica.
+    # Retorna um dicionário com 'sucesso' e a lista de alunos.
+    # """
     url = f"{SERVIDOR}/alunos?id_turma={id_turma}"
 
     try:
@@ -84,15 +84,15 @@ def listar_atividades_api(id_professor):
         return {"sucesso": False, "mensagem": f"Erro de conexão: {str(e)}"}
     
 def criar_atividade_api(payload):
-    """
-    Chama a API para criar uma nova atividade.
-    payload deve conter:
-    - nome_atividade
-    - descricao
-    - turmas (lista de ids)
-    - data_entrega
-    - professor_id
-    """
+    # """
+    # Chama a API para criar uma nova atividade.
+    # payload deve conter:
+    # - nome_atividade
+    # - descricao
+    # - turmas (lista de ids)
+    # - data_entrega
+    # - professor_id
+    # """
     url = f"{SERVIDOR}/criar_atividades"
 
     try:
@@ -103,15 +103,15 @@ def criar_atividade_api(payload):
         return {"sucesso": False, "mensagem": "Erro ao conectar no servidor!"}
  
 def editar_atividade_api(payload):
-    """
-    Chama a API para editar uma atividade existente.
-    payload deve conter:
-    - id_atividade
-    - nome_atividade
-    - descricao
-    - data_entrega
-    - professor_id
-    """
+    # """
+    # Chama a API para editar uma atividade existente.
+    # payload deve conter:
+    # - id_atividade
+    # - nome_atividade
+    # - descricao
+    # - data_entrega
+    # - professor_id
+    # """
     url = f"{SERVIDOR}/editar_atividade"
 
     try:
@@ -122,12 +122,12 @@ def editar_atividade_api(payload):
         return {"sucesso": False, "mensagem": f"Erro ao conectar na API: {str(e)}"}
     
 def excluir_atividade_api(payload):
-    """
-    Chama a API para excluir uma atividade existente.
-    payload deve conter:
-    - id_atividade
-    - professor_id
-    """
+    # """
+    # Chama a API para excluir uma atividade existente.
+    # payload deve conter:
+    # - id_atividade
+    # - professor_id
+    # """
     url = f"{SERVIDOR}/excluir_atividade"
 
     try:
@@ -138,16 +138,16 @@ def excluir_atividade_api(payload):
         return {"sucesso": False, "mensagem": f"Erro ao conectar na API: {str(e)}"}
 
 def salvar_nota_api(payload):
-    """
-    Chama a API para salvar ou atualizar a nota e o status de entrega de um aluno.
+    # """
+    # Chama a API para salvar ou atualizar a nota e o status de entrega de um aluno.
     
-    payload deve conter:
-    - id_aluno (obrigatório)
-    - id_atividade (obrigatório)
-    - nota (obrigatório)
-    - entregue (opcional, True ou False)
-    - professor_id (opcional)
-    """
+    # payload deve conter:
+    # - id_aluno (obrigatório)
+    # - id_atividade (obrigatório)
+    # - nota (obrigatório)
+    # - entregue (opcional, True ou False)
+    # - professor_id (opcional)
+    # """
     url = f"{SERVIDOR}/salvar_nota"
 
     try:
@@ -159,13 +159,13 @@ def salvar_nota_api(payload):
         return {"sucesso": False, "mensagem": f"Erro ao conectar no servidor"}
 
 def buscar_nota_api(id_aluno, id_atividade):
-    """
-    Busca a nota de um aluno em uma atividade específica.
+    # """
+    # Busca a nota de um aluno em uma atividade específica.
     
-    Retorna:
-    - {"sucesso": True, "nota": 8.5, "entregue": True}
-    - {"sucesso": False, "mensagem": "..."}
-    """
+    # Retorna:
+    # - {"sucesso": True, "nota": 8.5, "entregue": True}
+    # - {"sucesso": False, "mensagem": "..."}
+    # """
     url = f"{SERVIDOR}/buscar_nota"
 
     try:
@@ -221,10 +221,10 @@ def listar_atividades_aluno_id_api(id_aluno: int):
 
 
 def pegar_ra_id_alunos_api():
-    """
-    Chama o endpoint /pegar_ra_id_alunos para obter todos os RAs e IDs.
-    Retorna lista de dicionários: [{"ra": "123456", "id_aluno": 1}, ...]
-    """
+    # """
+    # Chama o endpoint /pegar_ra_id_alunos para obter todos os RAs e IDs.
+    # Retorna lista de dicionários: [{"ra": "123456", "id_aluno": 1}, ...]
+    # """
     url = f"{SERVIDOR}/pegar_ra_id_alunos"
     try:
         resposta = requests.get(url, timeout=5)
