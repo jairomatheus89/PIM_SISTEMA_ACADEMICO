@@ -1,10 +1,15 @@
 import sqlite3
+import os
 from moduloC.conversor import geradorzin   # Importa a função de outro módulo
 
 # -----------------------------
 # Conexão com o banco
 # -----------------------------
-banco = sqlite3.connect("C:/Users/USER/Documents/GitHub/PIM_SISTEMA_ACADEMICO/backend/src/database.db")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # pega a pasta do script atual
+caminho_db = os.path.join(BASE_DIR, "database.db")        # ajusta se o banco estiver em outra pasta
+
+banco = sqlite3.connect(caminho_db)
 cursor = banco.cursor()
 
 # -----------------------------

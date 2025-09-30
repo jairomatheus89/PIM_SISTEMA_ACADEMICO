@@ -1,11 +1,20 @@
 import ctypes
+import os
 
 #------------------------------------------------------------------------------------------------------------------#
 #-------------------------------------------- MODULO  RA ----------------------------------------------------------#
 #------------------------------------------------------------------------------------------------------------------#
 
-# Puxa a dll
-funcao_ra = ctypes.CDLL("C:/Users/USER/Documents/GitHub/PIM_SISTEMA_ACADEMICO/Backend/src/moduloC/ra_gerador.dll")
+
+
+# pega a pasta onde está este arquivo (conversor.py)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# monta o caminho até a DLL (na mesma pasta do conversor.py)
+caminho_ra = os.path.join(BASE_DIR, "ra_gerador.dll")
+
+# Carrega a DLL
+funcao_ra = ctypes.CDLL(caminho_ra)
 
 # Oq a funçao retorna:
 funcao_ra.gerador_ra.restype = ctypes.c_int #retorna int
@@ -28,8 +37,12 @@ def geradorzin():
 
 #------------------------------------------------------------------------------------------------------------------#
 
-# Puxa a dll
-funcao_media = ctypes.CDLL("C:/Users/USER/Documents/GitHub/PIM_SISTEMA_ACADEMICO/Backend/src/moduloC/calcular.dll")
+
+# Monta o caminho até a DLL
+caminho_media = os.path.join(BASE_DIR, "calcular.dll")
+
+# Carrega a DLL
+funcao_media = ctypes.CDLL(caminho_media)
 
 # Definição da função C
 funcao_media.calcular_media.argtypes = (ctypes.POINTER(ctypes.c_float), ctypes.c_int) #argumentos -> ponteiro pro vetor & tamanho inteiro
