@@ -3,7 +3,8 @@
 #include <time.h>
 
 // Função que gera um RA 
-int gerador_ra() {
+int gerador_ra() 
+{
 
     // Inicia a semente do tempo atual do pc
     srand(time(NULL));

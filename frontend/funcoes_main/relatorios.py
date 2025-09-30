@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from backend.api import *
-from backend.src.modulo_c import calcular_media_status
+from backend.src.moduloC.conversor import calcular_media_status
 
 
 def mostrar_relatorios(self):
