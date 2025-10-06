@@ -2,25 +2,35 @@ from tkinter import *
 from tkinter import ttk
 from backend.api import *
 
+# Cores
+BG_COLOR = "#1E2A38"        # Fundo azul escuro
+BTN_COLOR = "#D4A017"       # Botão mostarda escuro
+BTN_FG = "black"             # Texto do botão
+LABEL_FG = "white"           # Texto labels
+ENTRY_BG = "#2E3C4E"         # Fundo dos Entry
+ENTRY_FG = "white"
+
 def criar_frame_turmas(self, frame):
-    Label(frame, text="Selecione a turma:").pack(anchor=W, padx=5, pady=5)
-    self.combo_turmas = ttk.Combobox(frame, state="readonly")
+    frame.config(bg=BG_COLOR)
+    
+    Label(frame, text="Selecione a turma:", bg=BG_COLOR, fg=LABEL_FG).pack(anchor=W, padx=5, pady=5)
+    
+    self.combo_turmas = ttk.Combobox(frame, state="readonly", width=50)
     self.combo_turmas.pack(fill=X, padx=5, pady=5)
     self.combo_turmas.bind("<<ComboboxSelected>>", lambda e: turma_selecionada(self, e))
 
-    frame_alunos = Frame(frame)
+    frame_alunos = Frame(frame, bg=BG_COLOR)
     frame_alunos.pack(fill=BOTH, expand=True, padx=20, pady=5)
 
     colunas = ("nome", "ra")
     self.tree_alunos_turmas = ttk.Treeview(frame_alunos, columns=colunas, show="headings", height=10)
-    self.tree_alunos_turmas.heading("nome", text="Nome do Aluno")
-    self.tree_alunos_turmas.heading("ra", text="RA")
-    self.tree_alunos_turmas.column("nome", width=150, anchor=CENTER)
-    self.tree_alunos_turmas.column("ra", width=100, anchor=CENTER)
+    for col, width in [("nome",150), ("ra",100)]:
+        self.tree_alunos_turmas.heading(col, text=col.capitalize())
+        self.tree_alunos_turmas.column(col, width=width, anchor=CENTER)
+    self.tree_alunos_turmas.pack(side=LEFT, fill=BOTH, expand=True)
 
     scrollbar = Scrollbar(frame_alunos, orient=VERTICAL, command=self.tree_alunos_turmas.yview)
     self.tree_alunos_turmas.configure(yscrollcommand=scrollbar.set)
-    self.tree_alunos_turmas.pack(side=LEFT, fill=BOTH, expand=True)
     scrollbar.pack(side=RIGHT, fill=Y)
 
 def mostrar_turmas(self):

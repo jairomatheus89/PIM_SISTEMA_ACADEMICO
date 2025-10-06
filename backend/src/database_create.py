@@ -1,13 +1,8 @@
 import sqlite3
-import os
 
 class DataBaseService:
     def __init__(self):
-
-        base_dir = os.path.dirname(os.path.abspath(__file__))  # pega a pasta onde está esse arquivo
-        caminho_db = os.path.join(base_dir, "database.db")        # junta com o nome do banco
-        
-        self.db = sqlite3.connect(caminho_db)
+        self.db = sqlite3.connect("./database.db")
         self.create_db()
 
     def create_db(self):

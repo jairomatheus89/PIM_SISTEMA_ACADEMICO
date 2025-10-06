@@ -1,14 +1,28 @@
 from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 from backend.api import *
 
+# Cores
+TREE_BG = "#0F1A2B"          # fundo azul escuro
+TREE_FG = "#FFFFFF"           # texto branco
+LABEL_HIGHLIGHT = "#FFD966"   # amarelo mostarda
+ENTRY_BG = "#1E2A40"          # fundo de entry e combobox
+ENTRY_FG = "#FFFFFF"
+BTN_BG = "#0F1A2B"            # botão azul escuro
+BTN_FG = "#FFD966"             # texto botão amarelo
+
+# ---------- FUNÇÃO PRINCIPAL ----------
 def mostrar_notas(self):
     for widget in self.frames["notas"].winfo_children():
         widget.destroy()
     frame = self.frames["notas"]
+    frame.config(bg=TREE_BG)
 
-    Label(frame, text="Selecione a turma:").pack(anchor=W, padx=5, pady=5)
+    # Labels topo
+    Label(frame, text="Selecione a turma:", fg=LABEL_HIGHLIGHT, bg=TREE_BG, font=("Calibri", 11, "bold")).pack(anchor=W, padx=5, pady=5)
+    Label(frame, text="Selecione a atividade:", fg=LABEL_HIGHLIGHT, bg=TREE_BG, font=("Calibri", 11, "bold")).pack(anchor=W, padx=5, pady=5)
+
+    # Combobox de Turmas
     resultado_turmas = listar_turmas_api(self.professor["id"])
     self.turmas = resultado_turmas.get("turmas", []) if resultado_turmas.get("sucesso") else []
     turmas_nomes = ["Selecione uma turma"] + [t["nome_turma"] for t in self.turmas]
@@ -17,15 +31,26 @@ def mostrar_notas(self):
     self.combo_turmas_notas.current(0)
     self.combo_turmas_notas.pack(pady=5)
 
-    Label(frame, text="Selecione a atividade:").pack(anchor=W, padx=5, pady=5)
+    # Combobox de Atividades
     self.combo_atividades_notas = ttk.Combobox(frame, values=["Selecione uma turma primeiro"], state="readonly", width=50)
     self.combo_atividades_notas.current(0)
     self.combo_atividades_notas.pack(pady=5)
 
-    self.frame_alunos_notas = Frame(frame)
+    # Treeview alunos
+    self.frame_alunos_notas = Frame(frame, bg=TREE_BG)
     self.frame_alunos_notas.pack(fill=X, padx=20, pady=5)
 
     columns = ("ra", "nome", "nota", "status")
+    style = ttk.Style()
+    style.theme_use("clam")
+    style.configure("Treeview",
+                    background=TREE_BG,
+                    foreground=TREE_FG,
+                    fieldbackground=TREE_BG,
+                    rowheight=25,
+                    font=("Calibri", 11))
+    style.map('Treeview', background=[('selected', '#334466')], foreground=[('selected', '#FFFFFF')])
+
     self.tree_alunos_notas = ttk.Treeview(self.frame_alunos_notas, columns=columns, show="headings", height=8)
     for col in columns:
         self.tree_alunos_notas.heading(col, text=col.capitalize())
@@ -37,45 +62,50 @@ def mostrar_notas(self):
     scrollbar.pack(side=RIGHT, fill=Y)
     self.tree_alunos_notas.configure(yscrollcommand=scrollbar.set)
 
-    self.frame_aluno_selecionado = Frame(frame)
+    # Frame do aluno selecionado
+    self.frame_aluno_selecionado = Frame(frame, bg=TREE_BG)
     self.frame_aluno_selecionado.pack(fill=X, padx=20, pady=10)
     criar_frame_aluno(self)
 
+    # Binds
     self.combo_turmas_notas.bind("<<ComboboxSelected>>", lambda e: carregar_atividades(self))
     self.combo_atividades_notas.bind("<<ComboboxSelected>>", lambda e: carregar_alunos(self))
     self.tree_alunos_notas.bind("<<TreeviewSelect>>", lambda e: atualizar_dados_aluno(self))
 
 
+# ---------- FRAME ALUNO ----------
 def criar_frame_aluno(self):
     self.frame_aluno_selecionado.columnconfigure(0, weight=1)
     self.frame_aluno_selecionado.columnconfigure(1, weight=1)
 
-    Label(self.frame_aluno_selecionado, text="Aluno:").grid(row=0, column=0, sticky=E, padx=5, pady=2)
-    self.label_nome_aluno = Label(self.frame_aluno_selecionado, text="", width=30, anchor=CENTER)
+    Label(self.frame_aluno_selecionado, text="Aluno:", fg=LABEL_HIGHLIGHT, bg=TREE_BG).grid(row=0, column=0, sticky=E, padx=5, pady=2)
+    self.label_nome_aluno = Label(self.frame_aluno_selecionado, text="", width=30, anchor=CENTER, fg=TREE_FG, bg=TREE_BG)
     self.label_nome_aluno.grid(row=0, column=1, sticky=W, padx=5, pady=2)
 
-    Label(self.frame_aluno_selecionado, text="RA:").grid(row=1, column=0, sticky=E, padx=5, pady=2)
-    self.label_ra_aluno = Label(self.frame_aluno_selecionado, text="", width=30, anchor=CENTER)
+    Label(self.frame_aluno_selecionado, text="RA:", fg=LABEL_HIGHLIGHT, bg=TREE_BG).grid(row=1, column=0, sticky=E, padx=5, pady=2)
+    self.label_ra_aluno = Label(self.frame_aluno_selecionado, text="", width=30, anchor=CENTER, fg=TREE_FG, bg=TREE_BG)
     self.label_ra_aluno.grid(row=1, column=1, sticky=W, padx=5, pady=2)
 
-    Label(self.frame_aluno_selecionado, text="Atividade:").grid(row=2, column=0, sticky=E, padx=5, pady=2)
-    self.label_atividade = Label(self.frame_aluno_selecionado, text="", width=30, anchor=CENTER)
+    Label(self.frame_aluno_selecionado, text="Atividade:", fg=LABEL_HIGHLIGHT, bg=TREE_BG).grid(row=2, column=0, sticky=E, padx=5, pady=2)
+    self.label_atividade = Label(self.frame_aluno_selecionado, text="", width=30, anchor=CENTER, fg=TREE_FG, bg=TREE_BG)
     self.label_atividade.grid(row=2, column=1, sticky=W, padx=5, pady=2)
 
-    Label(self.frame_aluno_selecionado, text="Nota:").grid(row=3, column=0, sticky=E, padx=5, pady=2)
-    self.nota_entry_aluno = Entry(self.frame_aluno_selecionado, width=10, justify=CENTER)
+    Label(self.frame_aluno_selecionado, text="Nota:", fg=LABEL_HIGHLIGHT, bg=TREE_BG).grid(row=3, column=0, sticky=E, padx=5, pady=2)
+    self.nota_entry_aluno = Entry(self.frame_aluno_selecionado, width=10, justify=CENTER, fg=ENTRY_FG, bg=ENTRY_BG)
     self.nota_entry_aluno.grid(row=3, column=1, sticky=W, padx=5, pady=2)
 
-    Label(self.frame_aluno_selecionado, text="Status de entrega:").grid(row=4, column=0, sticky=E, padx=5, pady=2)
+    Label(self.frame_aluno_selecionado, text="Status de entrega:", fg=LABEL_HIGHLIGHT, bg=TREE_BG).grid(row=4, column=0, sticky=E, padx=5, pady=2)
     self.status_entrega_combo = ttk.Combobox(self.frame_aluno_selecionado, values=["Entregue","Não entregue"], state="readonly", width=15)
-    self.status_entrega_combo.grid(row=4, column=1, sticky=W, padx=5, pady=2)
     self.status_entrega_combo.set("Não entregue")
+    self.status_entrega_combo.grid(row=4, column=1, sticky=W, padx=5, pady=2)
 
-    self.botao_salvar_aluno = Button(self.frame_aluno_selecionado, text="Salvar",
+    self.botao_salvar_aluno = Button(self.frame_aluno_selecionado, text="Salvar", bg=BTN_BG, fg=BTN_FG,
+                                     font=("Calibri", 11, "bold"),
                                      command=lambda: salvar_nota_aluno(self, getattr(self, "aluno_selecionado", None)))
     self.botao_salvar_aluno.grid(row=5, column=0, columnspan=2, pady=10)
 
 
+# ---------- FUNÇÕES AUXILIARES ----------
 def carregar_atividades(self):
     turma_nome = self.combo_turmas_notas.get()
     self.combo_atividades_notas["values"] = ["Selecione uma turma primeiro"]
@@ -96,7 +126,7 @@ def carregar_atividades(self):
 
     resultado = listar_atividades_api(self.professor["id"])
     todas_atividades = resultado.get("atividades", []) if resultado.get("sucesso") else []
-    self.atividades = [a for a in todas_atividades if any(t["id_turma"]==turma["id_turma"] for t in a.get("turmas",[]))]
+    self.atividades = [a for a in todas_atividades if any(t["id_turma"] == turma["id_turma"] for t in a.get("turmas", []))]
     nomes_atividades = ["Selecione uma atividade"] + [a["nome_atividade"] for a in self.atividades]
     self.combo_atividades_notas["values"] = nomes_atividades
     self.combo_atividades_notas.current(0)
@@ -104,21 +134,20 @@ def carregar_atividades(self):
 
 def carregar_alunos(self):
     self.tree_alunos_notas.delete(*self.tree_alunos_notas.get_children())
-
     atividade_nome = self.combo_atividades_notas.get()
     turma_nome = self.combo_turmas_notas.get()
-    if atividade_nome == "Selecione uma atividade" or turma_nome=="Selecione uma turma":
+    if atividade_nome == "Selecione uma atividade" or turma_nome == "Selecione uma turma":
         return
 
     turma = next((t for t in self.turmas if t["nome_turma"] == turma_nome), None)
     if not turma:
         return
 
-    self.atividade_selecionada = next((a for a in self.atividades if a["nome_atividade"]==atividade_nome), None)
+    self.atividade_selecionada = next((a for a in self.atividades if a["nome_atividade"] == atividade_nome), None)
     if not self.atividade_selecionada:
         return
 
-    if not any(t["id_turma"]==turma["id_turma"] for t in self.atividade_selecionada.get("turmas",[])):
+    if not any(t["id_turma"] == turma["id_turma"] for t in self.atividade_selecionada.get("turmas", [])):
         messagebox.showwarning("Atenção","A atividade não pertence à turma selecionada.")
         return
 
@@ -166,20 +195,20 @@ def atualizar_dados_aluno(self):
 
 def salvar_nota_aluno(self, aluno):
     if not aluno:
-        messagebox.showwarning("Atenção","Nenhum aluno selecionado.")
+        messagebox.showwarning("Atenção", "Nenhum aluno selecionado.")
         return
 
     nota_str = self.nota_entry_aluno.get().strip()
     status = self.status_entrega_combo.get()
     try:
         nota_valor = float(nota_str)
-        if nota_valor<0 or nota_valor>10:
+        if nota_valor < 0 or nota_valor > 10:
             raise ValueError
     except ValueError:
-        messagebox.showwarning("Atenção","Digite uma nota válida (0 a 10).")
+        messagebox.showwarning("Atenção", "Digite uma nota válida (0 a 10).")
         return
 
-    entregue = True if status=="Entregue" else False
+    entregue = True if status == "Entregue" else False
     payload = {
         "id_aluno": aluno["id_aluno"],
         "id_atividade": self.atividade_selecionada["id_atividade"],
@@ -190,7 +219,7 @@ def salvar_nota_aluno(self, aluno):
 
     resultado = salvar_nota_api(payload)
     if resultado.get("sucesso"):
-        messagebox.showinfo("Sucesso",f"Nota do aluno {aluno['nome']} salva com sucesso!")
-        carregar_alunos(self)  # atualiza Treeview de notas
+        messagebox.showinfo("Sucesso", f"Nota do aluno {aluno['nome']} salva com sucesso!")
+        carregar_alunos(self)  # Atualiza Treeview
     else:
-        messagebox.showerror("Erro",resultado.get("mensagem","Erro ao salvar nota"))
+        messagebox.showerror("Erro", resultado.get("mensagem", "Erro ao salvar nota"))
