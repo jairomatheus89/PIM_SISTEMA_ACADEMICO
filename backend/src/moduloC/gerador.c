@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
 
 // Função que gera um RA 
 int gerador_ra() 
@@ -14,8 +15,10 @@ int gerador_ra()
     // RA de 6 digitos
     // A cada laço gera um numero aleatorio pro RA
     // No final retorna o RA inteiro com os 6 digitos aleatorios
+    
     for(int i = 0; i < 6; i++)
-    {
+    {   
+        sleep(1);
         int numero = 1 + rand() % 9;
         ra = ra * 10 + numero; // adiciona o numero a direita
     }

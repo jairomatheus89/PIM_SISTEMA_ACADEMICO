@@ -78,8 +78,8 @@ def calcular_media_status(notas, media_minima=7):
     aqui é onde vai instaciar a função do modulo C, puxando a função
     calcular_media e passando os parametros:
 
-    -> preenche_vetor como : notas   ---------->  float* notas
-    -> len(notas) como : tamanho do vetor ----->  int qtd
+    -> preenche_vetor como : notas   ----------->  float* notas
+    -> len(notas) como     : tamanho do vetor -->  int qtd
     """
     media = funcao_media.calcular_media(preenche_vetor, len(notas))
     #------------------------------------------------------------#
